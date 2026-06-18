@@ -1,9 +1,10 @@
+// frontend/src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import { ClerkProvider } from "@clerk/clerk-react";
 
-// Import your publishable key from the .env file
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
@@ -12,9 +13,10 @@ if (!PUBLISHABLE_KEY) {
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* This provider is what makes Clerk work across your whole app */}
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </ClerkProvider>
   </React.StrictMode>,
 );

@@ -3,6 +3,7 @@ const cors = require("cors");
 const { errorHandler } = require("./middleware/errorHandler.middleware");
 
 const app = express();
+const path = require("path");
 
 app.use(cors());
 app.use(express.json());
@@ -11,8 +12,11 @@ app.use(express.json());
 app.get("/health", (req, res) =>
   res.json({ success: true, data: { status: "ok" } }),
 );
-
+const { clerkAuth } = require("./middleware/auth.middleware");
+app.use(clerkAuth);
 // Routes will be mounted here in later phases, e.g.:
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+app.use("/api/upload", require("./routes/upload.routes"));
 app.use("/api/policy", require("./routes/policy.routes"));
 app.use("/api/submissions", require("./routes/submissions.routes"));
 app.use("/api/appeals", require("./routes/appeals.routes"));

@@ -1,13 +1,22 @@
-const { clerkClient, requireAuth } = require("@clerk/clerk-sdk-node");
+const {
+  clerkMiddleware,
+  requireAuth,
+  clerkClient,
+  getAuth,
+} = require("@clerk/express");
 const User = require("../models/User");
 
-// Verifies the Clerk JWT, rejects with 401 if invalid/missing.
+// Provides auth state to every request — must run before requireAuth/attachUser.
+const clerkAuth = clerkMiddleware();
+
+// Real Express middleware now (not a handler-wrapper) — exactly what we want.
 const requireClerkAuth = requireAuth();
 
 // Lazy sync — looks up Mongo User by clerkId, creates it on first hit if missing.
 async function attachUser(req, res, next) {
   try {
-    const clerkUserId = req.auth?.userId;
+    const auth = getAuth(req);
+    const clerkUserId = auth?.userId;
 
     if (!clerkUserId) {
       return res.status(401).json({
@@ -23,7 +32,6 @@ async function attachUser(req, res, next) {
       const email = clerkUser.emailAddresses?.[0]?.emailAddress;
       const role =
         clerkUser.publicMetadata?.role === "admin" ? "admin" : "user";
-
       user = await User.create({ clerkId: clerkUserId, email, role });
     }
 
@@ -38,7 +46,6 @@ async function attachUser(req, res, next) {
   }
 }
 
-// Role gate — used after attachUser on admin-only routes.
 function requireAdmin(req, res, next) {
   if (req.user?.role !== "admin") {
     return res.status(403).json({
@@ -49,4 +56,4 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireClerkAuth, attachUser, requireAdmin };
+module.exports = { clerkAuth, requireClerkAuth, attachUser, requireAdmin };

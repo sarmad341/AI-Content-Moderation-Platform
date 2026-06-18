@@ -1,3 +1,5 @@
+// frontend/src/App.jsx
+import { Routes, Route, Link } from "react-router-dom";
 import {
   SignedIn,
   SignedOut,
@@ -7,11 +9,16 @@ import {
   useUser,
 } from "@clerk/clerk-react";
 
-function App() {
-  // Grab the current user object
-  const { user } = useUser();
+import AdminRoute from "./components/AdminRoute";
+import Home from "./pages/Home";
+import SubmissionHistory from "./pages/SubmissionHistory";
+import AppealTracker from "./pages/AppealTracker";
+import AppealsQueue from "./pages/admin/AppealsQueue";
+import PolicyConfig from "./pages/admin/PolicyConfig";
+import Analytics from "./pages/admin/Analytics";
 
-  // Extract the role from publicMetadata, defaulting to 'user'
+function App() {
+  const { user } = useUser();
   const role = user?.publicMetadata?.role || "user";
 
   return (
@@ -27,7 +34,6 @@ function App() {
       >
         <h1>ClearLens</h1>
 
-        {/* Visible ONLY when logged out */}
         <SignedOut>
           <div style={{ display: "flex", gap: "1rem" }}>
             <SignInButton mode="modal" />
@@ -35,7 +41,6 @@ function App() {
           </div>
         </SignedOut>
 
-        {/* Visible ONLY when logged in */}
         <SignedIn>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <span>
@@ -46,34 +51,56 @@ function App() {
         </SignedIn>
       </header>
 
-      <main style={{ marginTop: "2rem" }}>
+      <SignedIn>
+        <nav style={{ display: "flex", gap: "1rem", margin: "1rem 0" }}>
+          <Link to="/">Home</Link>
+          <Link to="/submissions">My Submissions</Link>
+          <Link to="/appeals">My Appeals</Link>
+          {role === "admin" && (
+            <>
+              <Link to="/admin/queue">Appeals Queue</Link>
+              <Link to="/admin/policy">Policy Config</Link>
+              <Link to="/admin/analytics">Analytics</Link>
+            </>
+          )}
+        </nav>
+      </SignedIn>
+
+      <main style={{ marginTop: "1rem" }}>
         <SignedOut>
           <p>Please sign in to submit images for screening.</p>
         </SignedOut>
 
         <SignedIn>
-          <h2>Welcome to your Dashboard</h2>
-          <p>This area is visible to everyone who is logged in.</p>
-
-          {/* Admin-only section */}
-          {role === "admin" && (
-            <div
-              style={{
-                marginTop: "2rem",
-                padding: "1rem",
-                backgroundColor: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                borderRadius: "8px",
-              }}
-            >
-              <h3>Admin Controls</h3>
-              <ul>
-                <li>Appeals Queue</li>
-                <li>Policy Configuration</li>
-                <li>Analytics Dashboard</li>
-              </ul>
-            </div>
-          )}
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/submissions" element={<SubmissionHistory />} />
+            <Route path="/appeals" element={<AppealTracker />} />
+            <Route
+              path="/admin/queue"
+              element={
+                <AdminRoute>
+                  <AppealsQueue />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/policy"
+              element={
+                <AdminRoute>
+                  <PolicyConfig />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/analytics"
+              element={
+                <AdminRoute>
+                  <Analytics />
+                </AdminRoute>
+              }
+            />
+          </Routes>
         </SignedIn>
       </main>
     </div>
