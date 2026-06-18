@@ -1,0 +1,46 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: clearlens-mongo
+    command: ["--replSet", "rs0"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo "try { rs.status() } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }" | mongosh --quiet
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: clearlens-backend
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+      - MONGO_URI=mongodb://mongo:27017/clearlens?replicaSet=rs0
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - uploads-data:/app/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: clearlens-frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
+      - VITE_API_BASE_URL=http://localhost:5050/api
+
+volumes:
+  mongo-data:
+  uploads-data:
