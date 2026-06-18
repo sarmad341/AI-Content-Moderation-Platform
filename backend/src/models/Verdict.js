@@ -49,7 +49,6 @@ const verdictSchema = new mongoose.Schema({
   submissionId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Submission",
-    required: true,
     index: true,
   },
   imageUrl: { type: String, required: true },

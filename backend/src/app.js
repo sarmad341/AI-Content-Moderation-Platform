@@ -14,7 +14,7 @@ app.get("/health", (req, res) =>
 
 // Routes will be mounted here in later phases, e.g.:
 // app.use("/api/policy", require("./routes/policy.routes"));
-// app.use("/api/submissions", require("./routes/submissions.routes"));
+app.use("/api/submissions", require("./routes/submissions.routes"));
 // app.use("/api/appeals", require("./routes/appeals.routes"));
 // app.use("/api/analytics", require("./routes/analytics.routes"));
 
