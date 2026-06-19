@@ -92,12 +92,18 @@ async function listMyAppeals(req, res, next) {
 /**
  * GET /api/appeals/queue
  * Admin-only. All Pending appeals, oldest first (fairness — first filed, first reviewed).
+ * Populated with submission and user context so admins aren't just looking at raw IDs.
  */
 async function listAppealQueue(req, res, next) {
   try {
-    const appeals = await Appeal.find({ status: "Pending" }).sort({
-      createdAt: 1,
-    });
+    const appeals = await Appeal.find({ status: "Pending" })
+      .sort({ createdAt: 1 })
+      .populate("userId", "email")
+      .populate({
+        path: "submissionId",
+        select: "overallStatus submittedAt images",
+      });
+
     res.json({ success: true, data: appeals });
   } catch (err) {
     next(err);

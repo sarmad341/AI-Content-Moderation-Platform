@@ -75,14 +75,54 @@ function AppealsQueue() {
               </span>
               <span className="badge badge--pending">Pending</span>
             </div>
+
             <div className="meta-row">
-              <span className="meta-row__label">Submission ID</span>
-              <span className="meta-row__value">{appeal.submissionId}</span>
+              <span className="meta-row__label">Submitted by</span>
+              <span className="meta-row__value">
+                {appeal.userId?.email || "Unknown user"}
+              </span>
             </div>
             <div className="meta-row">
-              <span className="meta-row__label">Filed by user</span>
-              <span className="meta-row__value">{appeal.userId}</span>
+              <span className="meta-row__label">Submission status</span>
+              <span className="meta-row__value">
+                {appeal.submissionId?.overallStatus || "—"}
+              </span>
             </div>
+            <div className="meta-row">
+              <span className="meta-row__label">Submitted</span>
+              <span className="meta-row__value">
+                {appeal.submissionId?.submittedAt
+                  ? new Date(appeal.submissionId.submittedAt).toLocaleString()
+                  : "—"}
+              </span>
+            </div>
+
+            {appeal.submissionId?.images?.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.5rem",
+                  margin: "0.75rem 0",
+                  flexWrap: "wrap",
+                }}
+              >
+                {appeal.submissionId.images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img.imageUrl}
+                    alt={`Submission image ${i + 1}`}
+                    style={{
+                      width: "64px",
+                      height: "64px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      border: "1px solid #ddd",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
             <div className="meta-row">
               <span className="meta-row__label">Justification</span>
               <span className="meta-row__value">{appeal.justification}</span>

@@ -15,6 +15,7 @@ import AppealTracker from "./pages/AppealTracker";
 import AppealsQueue from "./pages/admin/AppealsQueue";
 import PolicyConfig from "./pages/admin/PolicyConfig";
 import Analytics from "./pages/admin/Analytics";
+import FlaggedQueue from "./pages/admin/FlaggedQueue";
 
 function App() {
   const { user } = useUser();
@@ -98,6 +99,14 @@ function App() {
                   Appeals Queue
                 </NavLink>
                 <NavLink
+                  to="/admin/flagged"
+                  className={({ isActive }) =>
+                    `app-nav__link${isActive ? " app-nav__link--active" : ""}`
+                  }
+                >
+                  Flagged Submissions
+                </NavLink>
+                <NavLink
                   to="/admin/policy"
                   className={({ isActive }) =>
                     `app-nav__link${isActive ? " app-nav__link--active" : ""}`
@@ -138,6 +147,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AppealsQueue />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/flagged"
+              element={
+                <AdminRoute>
+                  <FlaggedQueue />
                 </AdminRoute>
               }
             />

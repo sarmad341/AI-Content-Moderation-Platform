@@ -171,4 +171,24 @@ async function getSubmissionById(req, res, next) {
   }
 }
 
-module.exports = { createSubmission, listMySubmissions, getSubmissionById };
+/**
+ * GET /api/submissions/admin/flagged
+ * Admin-only. Every Flagged or Blocked submission platform-wide, regardless
+ * of appeal status — addresses the spec's requirement that Flagged
+ * submissions "enter the admin review queue" independent of user-initiated appeals.
+ */
+async function listFlaggedSubmissions(req, res, next) {
+  try {
+    const submissions = await Submission.find({
+      overallStatus: { $in: ["Flagged", "Blocked"] },
+    })
+      .sort({ submittedAt: -1 })
+      .populate("userId", "email");
+
+    res.json({ success: true, data: submissions });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { createSubmission, listMySubmissions, getSubmissionById, listFlaggedSubmissions };
