@@ -34,53 +34,31 @@ A full-stack content moderation system that screens user-submitted images agains
 ---
 
 ## Architecture Overview
-clearlens/
 
+```
+AI-Content-Moderation-Platform/
 ├── docker-compose.yml
-
 ├── .env.example
-
 ├── backend/
-
 │   ├── Dockerfile
-
 │   ├── src/
-
-│   │   ├── app.js                  # Express app setup, route mounting
-
-│   │   ├── server.js               # Entry point, DB connection, listen
-
-│   │   ├── config/db.js            # MongoDB connection logic
-
-│   │   ├── models/                 # User, Submission, Verdict, Appeal, PolicyVersion
-
-│   │   ├── middleware/              # Clerk auth, lazy user-sync, file upload, error handling
-
-│   │   ├── services/
-
-│   │   │   ├── aiScreening.service.js   # Gemini vision integration
-
-│   │   │   └── verdict.service.js       # Threshold/enforcement business logic
-
-│   │   ├── controllers/             # submissions, appeals, policy, analytics
-
-│   │   ├── routes/                  # REST route definitions
-
-│   │   └── seedPolicy.js            # One-time setup script (see below)
-
-│   └── uploads/                     # Locally stored submitted images (Docker volume)
-
+│   │   ├── app.js
+│   │   ├── server.js
+│   │   ├── config/db.js
+│   │   ├── models/          # User, PolicyVersion, Submission, Verdict, Appeal
+│   │   ├── middleware/      # auth, upload, error handling
+│   │   ├── routes/          # submissions, appeals, policy, analytics, upload
+│   │   ├── controllers/
+│   │   ├── services/        # aiScreening.service.js, verdict.service.js
+│   │   └── seedPolicy.js    # one-time policy seed utility, see Setup below
+│   └── uploads/             # uploaded images (gitignored, Docker volume-backed)
 └── frontend/
-
-├── Dockerfile
-
-└── src/
-
-├── api/client.js            # Authenticated fetch wrapper
-
-├── components/AdminRoute.jsx
-
-└── pages/                   # Home, SubmissionHistory, AppealTracker, admin/*
+    ├── Dockerfile
+    └── src/
+        ├── pages/            # Home, SubmissionHistory, AppealTracker, admin/*
+        ├── components/       # AdminRoute (role-based route guard)
+        └── api/client.js     # authenticated fetch wrapper
+```
 
 **Request flow for a submission:**
 
@@ -166,15 +144,14 @@ Visit `http://localhost:5173` and explore: submit images, view history, file app
 ## Running Without Docker (Local Development)
 
 **Backend** (`backend/.env`):
+
+```
 PORT=5050
-
 MONGO_URI=mongodb://localhost:27017/clearlens?replicaSet=rs0
-
 CLERK_SECRET_KEY=...
-
 CLERK_PUBLISHABLE_KEY=...
-
 GEMINI_API_KEY=...
+```
 
 ```bash
 docker run -d -p 27017:27017 --name clearlens-mongo mongo --replSet rs0
@@ -186,9 +163,11 @@ npm run dev
 ```
 
 **Frontend** (`frontend/.env.local`):
-VITE_CLERK_PUBLISHABLE_KEY=...
 
+```
+VITE_CLERK_PUBLISHABLE_KEY=...
 VITE_API_BASE_URL=http://localhost:5050/api
+```
 
 ```bash
 cd frontend
