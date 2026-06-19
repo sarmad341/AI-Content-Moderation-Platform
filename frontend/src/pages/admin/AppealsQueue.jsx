@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import apiRequest from "../../api/client";
+import Loading from "../../components/Loading";
 
 function AppealsQueue() {
   const { getToken } = useAuth();
@@ -9,7 +10,6 @@ function AppealsQueue() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Per-appeal response text, keyed by appeal ID, so each card has its own input
   const [responses, setResponses] = useState({});
   const [resolvingId, setResolvingId] = useState(null);
 
@@ -44,72 +44,78 @@ function AppealsQueue() {
         getToken,
       });
 
-      // Refetch the whole queue — never assume local state, the resolved
-      // appeal should now genuinely disappear from the Pending queue.
       await loadQueue();
     } catch (err) {
-      alert(`Failed to resolve: ${err.message}`); // simple for now, restyle as a toast in Cursor
+      alert(`Failed to resolve: ${err.message}`);
     } finally {
       setResolvingId(null);
     }
   }
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+  if (loading) return <Loading />;
+  if (error) return <div className="alert alert--error">Error: {error}</div>;
 
   return (
-    <div>
-      <h2>Appeals Queue ({queue.length} pending)</h2>
+    <div className="page">
+      <div className="page-header">
+        <h2>Appeals Queue</h2>
+        <p>{queue.length} pending appeal{queue.length !== 1 ? "s" : ""}</p>
+      </div>
 
       {queue.length === 0 ? (
-        <p>No pending appeals. The queue is clear.</p>
+        <div className="empty-state">
+          <p>No pending appeals. The queue is clear.</p>
+        </div>
       ) : (
         queue.map((appeal) => (
-          <div
-            key={appeal._id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "1rem",
-              marginBottom: "1rem",
-            }}
-          >
-            <p>
-              <strong>Submission ID:</strong> {appeal.submissionId}
-            </p>
-            <p>
-              <strong>Filed by user:</strong> {appeal.userId}
-            </p>
-            <p>
-              <strong>Filed:</strong>{" "}
-              {new Date(appeal.createdAt).toLocaleString()}
-            </p>
-            <p>
-              <strong>Justification:</strong> {appeal.justification}
-            </p>
+          <div key={appeal._id} className="card">
+            <div className="card__header">
+              <span className="card__title">
+                {new Date(appeal.createdAt).toLocaleString()}
+              </span>
+              <span className="badge badge--pending">Pending</span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-row__label">Submission ID</span>
+              <span className="meta-row__value">{appeal.submissionId}</span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-row__label">Filed by user</span>
+              <span className="meta-row__value">{appeal.userId}</span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-row__label">Justification</span>
+              <span className="meta-row__value">{appeal.justification}</span>
+            </div>
 
-            <textarea
-              placeholder="Optional response to the user..."
-              value={responses[appeal._id] || ""}
-              onChange={(e) => setResponseFor(appeal._id, e.target.value)}
-              rows={2}
-              style={{ width: "100%", marginTop: "0.5rem" }}
-            />
+            <div className="form-group" style={{ marginTop: "1rem" }}>
+              <label className="form-label" htmlFor={`response-${appeal._id}`}>
+                Response to user (optional)
+              </label>
+              <textarea
+                id={`response-${appeal._id}`}
+                className="form-textarea"
+                placeholder="Optional response to the user..."
+                value={responses[appeal._id] || ""}
+                onChange={(e) => setResponseFor(appeal._id, e.target.value)}
+                rows={2}
+              />
+            </div>
 
-            <div
-              style={{ marginTop: "0.5rem", display: "flex", gap: "0.5rem" }}
-            >
+            <div className="btn-group">
               <button
+                type="button"
+                className="btn btn--success"
                 onClick={() => handleResolve(appeal._id, "Accepted")}
                 disabled={resolvingId === appeal._id}
-                style={{ background: "#d4f4dd" }}
               >
                 {resolvingId === appeal._id ? "Processing..." : "Accept"}
               </button>
               <button
+                type="button"
+                className="btn btn--danger"
                 onClick={() => handleResolve(appeal._id, "Rejected")}
                 disabled={resolvingId === appeal._id}
-                style={{ background: "#f4d4d4" }}
               >
                 {resolvingId === appeal._id ? "Processing..." : "Reject"}
               </button>

@@ -1,5 +1,4 @@
-// frontend/src/App.jsx
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, NavLink, Link } from "react-router-dom";
 import {
   SignedIn,
   SignedOut,
@@ -20,55 +19,113 @@ import Analytics from "./pages/admin/Analytics";
 function App() {
   const { user } = useUser();
   const role = user?.publicMetadata?.role || "user";
+  const isAdmin = role === "admin";
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderBottom: "1px solid #ccc",
-          paddingBottom: "1rem",
-        }}
-      >
-        <h1>ClearLens</h1>
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="app-header__inner">
+          <Link to="/" className="app-brand">
+            <span className="app-brand__logo">CL</span>
+            <span className="app-brand__name">ClearLens</span>
+          </Link>
 
-        <SignedOut>
-          <div style={{ display: "flex", gap: "1rem" }}>
-            <SignInButton mode="modal" />
-            <SignUpButton mode="modal" />
-          </div>
-        </SignedOut>
+          <SignedOut>
+            <div className="btn-group">
+              <SignInButton mode="modal">
+                <button type="button" className="btn btn--secondary">
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button type="button" className="btn btn--primary">
+                  Sign up
+                </button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
 
-        <SignedIn>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span>
-              Role: <strong>{role}</strong>
-            </span>
-            <UserButton />
-          </div>
-        </SignedIn>
+          <SignedIn>
+            <div className="app-header__actions">
+              <span
+                className={`role-badge${isAdmin ? " role-badge--admin" : ""}`}
+              >
+                {role}
+              </span>
+              <UserButton />
+            </div>
+          </SignedIn>
+        </div>
       </header>
 
       <SignedIn>
-        <nav style={{ display: "flex", gap: "1rem", margin: "1rem 0" }}>
-          <Link to="/">Home</Link>
-          <Link to="/submissions">My Submissions</Link>
-          <Link to="/appeals">My Appeals</Link>
-          {role === "admin" && (
-            <>
-              <Link to="/admin/queue">Appeals Queue</Link>
-              <Link to="/admin/policy">Policy Config</Link>
-              <Link to="/admin/analytics">Analytics</Link>
-            </>
-          )}
+        <nav className="app-nav">
+          <div className="app-nav__inner">
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) =>
+                `app-nav__link${isActive ? " app-nav__link--active" : ""}`
+              }
+            >
+              Submit
+            </NavLink>
+            <NavLink
+              to="/submissions"
+              className={({ isActive }) =>
+                `app-nav__link${isActive ? " app-nav__link--active" : ""}`
+              }
+            >
+              My Submissions
+            </NavLink>
+            <NavLink
+              to="/appeals"
+              className={({ isActive }) =>
+                `app-nav__link${isActive ? " app-nav__link--active" : ""}`
+              }
+            >
+              My Appeals
+            </NavLink>
+            {isAdmin && (
+              <>
+                <span className="app-nav__divider" aria-hidden="true" />
+                <NavLink
+                  to="/admin/queue"
+                  className={({ isActive }) =>
+                    `app-nav__link${isActive ? " app-nav__link--active" : ""}`
+                  }
+                >
+                  Appeals Queue
+                </NavLink>
+                <NavLink
+                  to="/admin/policy"
+                  className={({ isActive }) =>
+                    `app-nav__link${isActive ? " app-nav__link--active" : ""}`
+                  }
+                >
+                  Policy Config
+                </NavLink>
+                <NavLink
+                  to="/admin/analytics"
+                  className={({ isActive }) =>
+                    `app-nav__link${isActive ? " app-nav__link--active" : ""}`
+                  }
+                >
+                  Analytics
+                </NavLink>
+              </>
+            )}
+          </div>
         </nav>
       </SignedIn>
 
-      <main style={{ marginTop: "1rem" }}>
+      <main
+        className={`app-main${!user ? " app-main--centered" : ""}`}
+      >
         <SignedOut>
-          <p>Please sign in to submit images for screening.</p>
+          <div className="empty-state">
+            <p>Sign in to submit images for AI-powered content screening.</p>
+          </div>
         </SignedOut>
 
         <SignedIn>

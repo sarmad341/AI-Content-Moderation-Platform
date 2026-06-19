@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import apiRequest from "../api/client";
+import Loading from "../components/Loading";
+import { statusBadgeClass } from "../utils/status";
 
 function SubmissionHistory() {
   const { getToken } = useAuth();
@@ -8,7 +10,6 @@ function SubmissionHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filter state
   const [status, setStatus] = useState("");
   const [category, setCategory] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -44,7 +45,6 @@ function SubmissionHistory() {
     }
   }
 
-  // Fetch on initial mount, and whenever filters change.
   useEffect(() => {
     fetchSubmissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,95 +58,109 @@ function SubmissionHistory() {
   }
 
   return (
-    <div>
-      <h2>My Submission History</h2>
+    <div className="page">
+      <div className="page-header">
+        <h2>My Submission History</h2>
+        <p>View and filter your past image submissions.</p>
+      </div>
 
-      {/* Filter controls — plain markup, restyle freely in Cursor */}
-      <div
-        style={{
-          display: "flex",
-          gap: "1rem",
-          flexWrap: "wrap",
-          margin: "1rem 0",
-        }}
-      >
-        <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">All statuses</option>
-          <option value="Approved">Approved</option>
-          <option value="Flagged">Flagged</option>
-          <option value="Blocked">Blocked</option>
-        </select>
+      <div className="filters-bar">
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" htmlFor="filter-status">
+            Status
+          </label>
+          <select
+            id="filter-status"
+            className="form-select"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">All statuses</option>
+            <option value="Approved">Approved</option>
+            <option value="Flagged">Flagged</option>
+            <option value="Blocked">Blocked</option>
+          </select>
+        </div>
 
-        <select value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="">All categories</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" htmlFor="filter-category">
+            Category
+          </label>
+          <select
+            id="filter-category"
+            className="form-select"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">All categories</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <label>
-          From:{" "}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" htmlFor="filter-from">
+            From
+          </label>
           <input
+            id="filter-from"
             type="date"
+            className="form-input"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
-        </label>
-        <label>
-          To:{" "}
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" htmlFor="filter-to">
+            To
+          </label>
           <input
+            id="filter-to"
             type="date"
+            className="form-input"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
-        </label>
+        </div>
 
-        <button onClick={clearFilters}>Clear filters</button>
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={clearFilters}
+        >
+          Clear filters
+        </button>
       </div>
 
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+      {loading && <Loading />}
+      {error && <div className="alert alert--error">Error: {error}</div>}
 
       {!loading && !error && submissions.length === 0 && (
-        <p>No submissions found matching these filters.</p>
+        <div className="empty-state">
+          <p>No submissions found matching these filters.</p>
+        </div>
       )}
 
       {!loading && !error && submissions.length > 0 && (
         <div>
           {submissions.map((s) => (
-            <div
-              key={s._id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                padding: "1rem",
-                marginBottom: "1rem",
-              }}
-            >
-              <p>
-                <strong>Status:</strong>{" "}
-                <span
-                  style={{
-                    color:
-                      s.overallStatus === "Approved"
-                        ? "green"
-                        : s.overallStatus === "Flagged"
-                          ? "orange"
-                          : "red",
-                  }}
-                >
+            <div key={s._id} className="card">
+              <div className="card__header">
+                <span className="card__title">
+                  {new Date(s.submittedAt).toLocaleString()}
+                </span>
+                <span className={statusBadgeClass(s.overallStatus)}>
                   {s.overallStatus}
                 </span>
-              </p>
-              <p>
-                <strong>Submitted:</strong>{" "}
-                {new Date(s.submittedAt).toLocaleString()}
-              </p>
-              <p>
-                <strong>Images:</strong> {s.images.length}
-              </p>
+              </div>
+              <div className="meta-row">
+                <span className="meta-row__label">Images</span>
+                <span className="meta-row__value">{s.images.length}</span>
+              </div>
               <ul>
                 {s.images.map((img, i) => (
                   <li key={i}>

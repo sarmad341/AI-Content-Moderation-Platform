@@ -1,12 +1,12 @@
-// frontend/src/components/AdminRoute.jsx
 import { useUser } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
+import Loading from "./Loading";
 
 function AdminRoute({ children }) {
   const { user, isLoaded } = useUser();
 
   if (!isLoaded) {
-    return <p>Loading...</p>;
+    return <Loading />;
   }
 
   const role = user?.publicMetadata?.role || "user";

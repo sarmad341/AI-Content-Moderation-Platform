@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import apiRequest from "../../api/client";
+import Loading from "../../components/Loading";
 
 function PolicyConfig() {
   const { getToken } = useAuth();
@@ -18,7 +19,6 @@ function PolicyConfig() {
     try {
       const data = await apiRequest("/policy/active", { getToken });
       setVersion(data.version);
-      // Deep copy so we can edit locally without mutating the fetched object directly.
       setCategories(data.categories.map((c) => ({ ...c })));
     } catch (err) {
       setError(err.message);
@@ -44,7 +44,6 @@ function PolicyConfig() {
     setSaving(true);
     setSaveMessage(null);
     try {
-      // Strip Mongoose-specific fields, send only what the backend expects.
       const payload = categories.map((c) => ({
         name: c.name,
         enabled: c.enabled,
@@ -69,53 +68,50 @@ function PolicyConfig() {
     }
   }
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+  if (loading) return <Loading />;
+  if (error) return <div className="alert alert--error">Error: {error}</div>;
+
+  const isSuccessMessage =
+    saveMessage && !saveMessage.startsWith("Error:");
 
   return (
-    <div>
-      <h2>Policy Configuration (Active Version: {version})</h2>
-      <p style={{ color: "#666" }}>
-        Changes apply only to submissions made after saving. Existing verdicts
-        are never retroactively altered.
-      </p>
+    <div className="page">
+      <div className="page-header">
+        <h2>Policy Configuration</h2>
+        <p>
+          Active version {version}. Changes apply only to future submissions —
+          existing verdicts are never retroactively altered.
+        </p>
+      </div>
 
       {categories.map((cat, index) => (
         <div
           key={cat.name}
-          style={{
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            padding: "1rem",
-            marginBottom: "1rem",
-            opacity: cat.enabled ? 1 : 0.5,
-          }}
+          className={`card${!cat.enabled ? " card--disabled" : ""}`}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <strong>{cat.name}</strong>
-            <label>
+          <div className="card__header">
+            <span className="card__title">{cat.name}</span>
+            <label className="form-checkbox">
               <input
                 type="checkbox"
                 checked={cat.enabled}
                 onChange={(e) =>
                   updateCategory(index, "enabled", e.target.checked)
                 }
-              />{" "}
+              />
               Enabled
             </label>
           </div>
 
-          <div style={{ display: "flex", gap: "1.5rem", marginTop: "0.75rem" }}>
-            <label>
-              Threshold (%):{" "}
+          <div className="policy-controls">
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" htmlFor={`threshold-${index}`}>
+                Threshold (%)
+              </label>
               <input
+                id={`threshold-${index}`}
                 type="number"
+                className="form-input"
                 min="0"
                 max="100"
                 value={cat.threshold}
@@ -123,13 +119,16 @@ function PolicyConfig() {
                   updateCategory(index, "threshold", e.target.value)
                 }
                 disabled={!cat.enabled}
-                style={{ width: "70px" }}
               />
-            </label>
+            </div>
 
-            <label>
-              Enforcement:{" "}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" htmlFor={`enforcement-${index}`}>
+                Enforcement
+              </label>
               <select
+                id={`enforcement-${index}`}
+                className="form-select"
                 value={cat.enforcement}
                 onChange={(e) =>
                   updateCategory(index, "enforcement", e.target.value)
@@ -139,20 +138,28 @@ function PolicyConfig() {
                 <option value="Auto-Block">Auto-Block</option>
                 <option value="Flag for Review">Flag for Review</option>
               </select>
-            </label>
+            </div>
           </div>
         </div>
       ))}
 
       <button
+        type="button"
+        className="btn btn--primary"
         onClick={handleSave}
         disabled={saving}
-        style={{ padding: "0.5rem 1.5rem" }}
       >
         {saving ? "Saving..." : "Save Policy"}
       </button>
 
-      {saveMessage && <p style={{ marginTop: "1rem" }}>{saveMessage}</p>}
+      {saveMessage && (
+        <div
+          className={`alert${isSuccessMessage ? " alert--success" : " alert--error"}`}
+          style={{ marginTop: "1rem" }}
+        >
+          {saveMessage}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import apiRequest from "../../api/client";
+import Loading from "../../components/Loading";
 
 function Analytics() {
   const { getToken } = useAuth();
@@ -40,94 +41,137 @@ function Analytics() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+  if (loading) return <Loading />;
+  if (error) return <div className="alert alert--error">Error: {error}</div>;
 
   return (
-    <div>
-      <h2>Platform Analytics</h2>
+    <div className="page">
+      <div className="page-header">
+        <h2>Platform Analytics</h2>
+        <p>Overview of submission activity, verdicts, appeals, and users.</p>
+      </div>
 
-      <section style={{ marginBottom: "2rem" }}>
-        <h3>Submission Volume (last 30 days)</h3>
+      <section className="page-section">
+        <h3 className="page-section__title">Appeals Overview</h3>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-card__label">Total Appeals</div>
+            <div className="stat-card__value">{appealStats.total}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card__label">Pending</div>
+            <div className="stat-card__value">{appealStats.pending}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card__label">Accepted</div>
+            <div className="stat-card__value">{appealStats.accepted}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card__label">Rejected</div>
+            <div className="stat-card__value">{appealStats.rejected}</div>
+          </div>
+        </div>
+        <p>
+          Resolution rate: <strong>{appealStats.resolutionRate}%</strong> ·
+          Acceptance rate (of resolved):{" "}
+          <strong>{appealStats.acceptanceRate}%</strong>
+        </p>
+      </section>
+
+      <section className="page-section">
+        <h3 className="page-section__title">
+          Submission Volume (last 30 days)
+        </h3>
         {volume.volume.length === 0 ? (
-          <p>No submissions in this range.</p>
+          <div className="empty-state">
+            <p>No submissions in this range.</p>
+          </div>
         ) : (
-          <ul>
-            {volume.volume.map((v) => (
-              <li key={v.date}>
-                {v.date}: {v.count} submission(s)
-              </li>
-            ))}
-          </ul>
+          <div className="card">
+            <ul className="data-list">
+              {volume.volume.map((v) => (
+                <li key={v.date}>
+                  <span>{v.date}</span>
+                  <span className="data-list__count">
+                    {v.count} submission{v.count !== 1 ? "s" : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
 
-      <section style={{ marginBottom: "2rem" }}>
-        <h3>Verdict Distribution</h3>
-        <p>
-          <strong>By outcome:</strong>
-        </p>
-        <ul>
-          {verdicts.byOutcome.map((v) => (
-            <li key={v.outcome}>
-              {v.outcome}: {v.count}
-            </li>
-          ))}
-        </ul>
-        <p>
-          <strong>By category (triggered count):</strong>
-        </p>
-        {verdicts.byCategory.length === 0 ? (
-          <p>No categories have triggered yet.</p>
-        ) : (
-          <ul>
-            {verdicts.byCategory.map((c) => (
-              <li key={c.category}>
-                {c.category}: {c.triggeredCount}
+      <section className="page-section">
+        <h3 className="page-section__title">Verdict Distribution</h3>
+        <div className="card">
+          <p>
+            <strong>By outcome</strong>
+          </p>
+          <ul className="data-list">
+            {verdicts.byOutcome.map((v) => (
+              <li key={v.outcome}>
+                <span>{v.outcome}</span>
+                <span className="data-list__count">{v.count}</span>
               </li>
             ))}
           </ul>
-        )}
+        </div>
+        <div className="card">
+          <p>
+            <strong>By category (triggered count)</strong>
+          </p>
+          {verdicts.byCategory.length === 0 ? (
+            <p style={{ color: "var(--text-muted)", marginBottom: 0 }}>
+              No categories have triggered yet.
+            </p>
+          ) : (
+            <ul className="data-list">
+              {verdicts.byCategory.map((c) => (
+                <li key={c.category}>
+                  <span>{c.category}</span>
+                  <span className="data-list__count">{c.triggeredCount}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
 
-      <section style={{ marginBottom: "2rem" }}>
-        <h3>Appeals</h3>
-        <p>
-          Total: {appealStats.total} | Pending: {appealStats.pending} |
-          Accepted: {appealStats.accepted} | Rejected: {appealStats.rejected}
-        </p>
-        <p>
-          Resolution rate: {appealStats.resolutionRate}% | Acceptance rate (of
-          resolved): {appealStats.acceptanceRate}%
-        </p>
-      </section>
-
-      <section>
-        <h3>Top Users</h3>
-        <p>
-          <strong>By submission count:</strong>
-        </p>
-        <ul>
-          {rankedUsers.bySubmissionCount.map((u) => (
-            <li key={u.userId}>
-              {u.email}: {u.submissionCount}
-            </li>
-          ))}
-        </ul>
-        <p>
-          <strong>By violation count (Flagged/Blocked submissions):</strong>
-        </p>
-        {rankedUsers.byViolationCount.length === 0 ? (
-          <p>No violations recorded yet.</p>
-        ) : (
-          <ul>
-            {rankedUsers.byViolationCount.map((u) => (
+      <section className="page-section">
+        <h3 className="page-section__title">Top Users</h3>
+        <div className="card">
+          <p>
+            <strong>By submission count</strong>
+          </p>
+          <ul className="data-list">
+            {rankedUsers.bySubmissionCount.map((u) => (
               <li key={u.userId}>
-                {u.email}: {u.violationCount}
+                <span>{u.email}</span>
+                <span className="data-list__count">{u.submissionCount}</span>
               </li>
             ))}
           </ul>
-        )}
+        </div>
+        <div className="card">
+          <p>
+            <strong>By violation count (Flagged/Blocked)</strong>
+          </p>
+          {rankedUsers.byViolationCount.length === 0 ? (
+            <p style={{ color: "var(--text-muted)", marginBottom: 0 }}>
+              No violations recorded yet.
+            </p>
+          ) : (
+            <ul className="data-list">
+              {rankedUsers.byViolationCount.map((u) => (
+                <li key={u.userId}>
+                  <span>{u.email}</span>
+                  <span className="data-list__count">{u.violationCount}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
     </div>
   );
