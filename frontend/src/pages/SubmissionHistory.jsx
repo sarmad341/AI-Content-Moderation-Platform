@@ -35,8 +35,8 @@ function SubmissionHistory() {
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
 
-      const query = params.toString() ? `?${params.toString()}` : "";
-      const data = await apiRequest(`/submissions${query}`, { getToken });
+      const query = params.toString() ? "?" + params.toString() : "";
+      const data = await apiRequest("/submissions" + query, { getToken });
       setSubmissions(data);
     } catch (err) {
       setError(err.message);
@@ -55,6 +55,26 @@ function SubmissionHistory() {
     setCategory("");
     setDateFrom("");
     setDateTo("");
+  }
+
+  function renderThumbnails(images) {
+    return images.map(function (img, i) {
+      return (
+        <a key={i} href={img.imageUrl} target="_blank" rel="noreferrer">
+          <img
+            src={img.imageUrl}
+            alt={"Submission image " + (i + 1)}
+            style={{
+              width: "64px",
+              height: "64px",
+              objectFit: "cover",
+              borderRadius: "8px",
+              border: "1px solid #ddd",
+            }}
+          />
+        </a>
+      );
+    });
   }
 
   return (
@@ -161,15 +181,16 @@ function SubmissionHistory() {
                 <span className="meta-row__label">Images</span>
                 <span className="meta-row__value">{s.images.length}</span>
               </div>
-              <ul>
-                {s.images.map((img, i) => (
-                  <li key={i}>
-                    <a href={img.imageUrl} target="_blank" rel="noreferrer">
-                      Image {i + 1}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.5rem",
+                  marginTop: "0.75rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                {renderThumbnails(s.images)}
+              </div>
             </div>
           ))}
         </div>

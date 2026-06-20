@@ -77,12 +77,14 @@ async function createAppeal(req, res, next) {
 /**
  * GET /api/appeals/mine
  * All appeals filed by the current user, for status tracking.
+ * Populated with submission images so the user can see thumbnails of what was appealed.
  */
 async function listMyAppeals(req, res, next) {
   try {
-    const appeals = await Appeal.find({ userId: req.user._id }).sort({
-      createdAt: -1,
-    });
+    const appeals = await Appeal.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate({ path: "submissionId", select: "overallStatus images" });
+
     res.json({ success: true, data: appeals });
   } catch (err) {
     next(err);

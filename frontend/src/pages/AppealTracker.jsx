@@ -28,10 +28,12 @@ function AppealTracker() {
 
       setAppeals(myAppeals);
 
+      // submissionId is now a populated object (or null) since the backend
+      // populates it — compare against ._id, not the raw string.
       const pendingSubmissionIds = new Set(
         myAppeals
           .filter((a) => a.status === "Pending")
-          .map((a) => a.submissionId),
+          .map((a) => a.submissionId?._id || a.submissionId),
       );
 
       const eligible = mySubmissions.filter(
@@ -167,9 +169,38 @@ function AppealTracker() {
                 </span>
                 <span className={statusBadgeClass(a.status)}>{a.status}</span>
               </div>
+
+              {a.submissionId?.images?.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    margin: "0.75rem 0",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {a.submissionId.images.map((img, i) => (
+                    <img
+                      key={i}
+                      src={img.imageUrl}
+                      alt={`Submission image ${i + 1}`}
+                      style={{
+                        width: "64px",
+                        height: "64px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "1px solid #ddd",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
               <div className="meta-row">
-                <span className="meta-row__label">Submission ID</span>
-                <span className="meta-row__value">{a.submissionId}</span>
+                <span className="meta-row__label">Submission status</span>
+                <span className="meta-row__value">
+                  {a.submissionId?.overallStatus || "—"}
+                </span>
               </div>
               <div className="meta-row">
                 <span className="meta-row__label">Your justification</span>
