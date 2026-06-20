@@ -6,13 +6,9 @@ const {
 } = require("@clerk/express");
 const User = require("../models/User");
 
-// Provides auth state to every request — must run before requireAuth/attachUser.
 const clerkAuth = clerkMiddleware();
-
-// Real Express middleware now (not a handler-wrapper) — exactly what we want.
 const requireClerkAuth = requireAuth();
 
-// Lazy sync — looks up Mongo User by clerkId, creates it on first hit if missing.
 async function attachUser(req, res, next) {
   try {
     const auth = getAuth(req);
@@ -32,7 +28,19 @@ async function attachUser(req, res, next) {
       const email = clerkUser.emailAddresses?.[0]?.emailAddress;
       const role =
         clerkUser.publicMetadata?.role === "admin" ? "admin" : "user";
-      user = await User.create({ clerkId: clerkUserId, email, role });
+
+      try {
+        user = await User.create({ clerkId: clerkUserId, email, role });
+      } catch (createErr) {
+        // Race condition: another concurrent request created this exact user
+        // between our findOne() check and this create() call. That's fine —
+        // just fetch the user that the other request already created.
+        if (createErr.code === 11000) {
+          user = await User.findOne({ clerkId: clerkUserId });
+        } else {
+          throw createErr;
+        }
+      }
     }
 
     req.user = user;

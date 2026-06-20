@@ -242,6 +242,7 @@ Responses follow: `{ "success": true, "data": {...} }` or `{ "success": false, "
 
 ## Known Limitations
 
+- **Gemini free-tier rate limit.** The free tier allows a limited number of requests per day (currently 20 for `gemini-2.5-flash`). Heavy testing — many submissions in a short period — may temporarily exhaust this quota, causing submissions to fail with a 429 error until the quota resets (typically within 24 hours, sometimes faster per-minute). Generating your own free Gemini API key (rather than reusing one already near its limit) avoids this during evaluation.
 - **No automated test suite.** Business logic was manually verified extensively during development, but no checked-in tests exist.
 - **Clerk role and MongoDB role can drift.** Role syncs from Clerk to MongoDB only at first login; later Clerk role changes don't auto-propagate.
 - **Category coverage gaps inherent to free-tier AI.** As with any LLM-based classifier, edge cases may occasionally be misclassified — mitigated, not eliminated, by the appeal workflow.
